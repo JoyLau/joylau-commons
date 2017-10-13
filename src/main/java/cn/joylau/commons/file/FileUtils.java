@@ -11,6 +11,8 @@ import cn.joylau.commons.file.callback.ScanCallBack;
 import cn.joylau.commons.utils.StringUtils;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Created by JoyLau on 4/17/2017.
@@ -256,5 +258,55 @@ public class FileUtils extends Resources {
             return fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
         }
         return "";
+    }
+
+    /**
+     * 从网络下载文件并得到文件的字符串
+     *
+     * @param urlStr
+     * @param fileName
+     * @param savePath
+     * @throws IOException
+     */
+    public File downLoadFromUrl(String urlStr, String fileName, String savePath) {
+        try {
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            //得到输入流
+            InputStream inputStream = conn.getInputStream();
+            //获取自己数组
+            byte[] bytes = getBytes(inputStream);
+            //文件保存位置
+            File saveDir = new File(savePath);
+            if (!saveDir.exists()) {
+                saveDir.mkdir();
+            }
+            File file = new File(saveDir + File.separator + fileName);
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(bytes);
+            fos.close();
+            inputStream.close();
+            return file;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * 从输入流中获取字节数组
+     * @param inputStream
+     * @return
+     * @throws IOException
+     */
+    private static byte[] getBytes(InputStream inputStream) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        while ((len = inputStream.read(buffer)) != -1) {
+            bos.write(buffer, 0, len);
+        }
+        bos.close();
+        return bos.toByteArray();
     }
 }
